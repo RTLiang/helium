@@ -1175,7 +1175,7 @@
    }
  
    // This will be the area next to the vertical tab strip (if present) that will
-@@ -807,14 +898,7 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -807,14 +898,15 @@ BrowserViewTabbedLayoutImpl::CalculatePr
    if (IsParentedTo(views().vertical_tab_strip_region_view,
                     views().browser_view)) {
      if (layout_data_->tab_strip_type == TabStripType::kVertical) {
@@ -1187,11 +1187,19 @@
 -      int vertical_tab_strip_width =
 -          horizontal_layout.vertical_tab_strip_width +
 -          vertical_tab_strip_hover_width;
-+      int vertical_tab_strip_width = horizontal_layout.vertical_tab_strip_width;
++      const int vertical_tab_strip_hover_width =
++          zen.enabled
++              ? 0
++              : std::max(0, tabs::kVerticalTabStripDefaultUncollapsedWidth -
++                                horizontal_layout.vertical_tab_strip_width) *
++                    vertical_tab_strip_animation.expand_on_hover_width;
++      int vertical_tab_strip_width =
++          horizontal_layout.vertical_tab_strip_width +
++          vertical_tab_strip_hover_width;
  
        // The overall width during an expand must change monotonically.
        if (vertical_tab_strip_animation.current_motion ==
-@@ -836,15 +920,30 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -836,15 +928,30 @@ BrowserViewTabbedLayoutImpl::CalculatePr
  
        const int vertical_tab_strip_x =
            vertical_right_aligned
@@ -1231,7 +1239,7 @@
  
        if (layout_data_->window_state == WindowState::kFullscreenWithToolbar &&
            layout_data_->separator_info.adjust_for_missing_separator) {
-@@ -852,17 +951,23 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -852,17 +959,23 @@ BrowserViewTabbedLayoutImpl::CalculatePr
              gfx::Insets::TLBR(views::Separator::kThickness, 0, 0, 0));
        }
  
@@ -1259,7 +1267,7 @@
          InsetHorizontal(unclipped_contents_region,
                          VerticalTabStripRegionView::kCollapsedWidth,
                          !vertical_right_aligned);
-@@ -874,7 +979,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -874,7 +987,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
      }
      layout.AddChild(views().vertical_tab_strip_region_view,
                      vertical_tab_strip_bounds,
@@ -1269,7 +1277,7 @@
    }
  
    if (IsParentedTo(views().vertical_tab_strip_background_blur_backdrop,
-@@ -938,7 +1044,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -938,7 +1052,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
      top_container_layout.bounds = GetTopContainerBoundsInParent(
          top_container_local_bounds, parent_params);
  
@@ -1279,7 +1287,7 @@
        auto& top_container_children = top_container_layout.children;
        auto bookmarks_child = top_container_children.find(views().bookmark_bar);
        if (bookmarks_child != top_container_children.end() &&
-@@ -972,15 +1079,40 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -972,15 +1087,40 @@ BrowserViewTabbedLayoutImpl::CalculatePr
        if (const auto* toolbar_layout =
                top_container_layout.GetLayoutFor(views().toolbar);
            toolbar_layout && !toolbar_layout->bounds.IsEmpty()) {
@@ -1322,7 +1330,7 @@
    }
  
    if (dynamic_tab_strip) {
-@@ -988,15 +1120,21 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -988,15 +1128,21 @@ BrowserViewTabbedLayoutImpl::CalculatePr
  
      const int tabstrip_height =
          views().horizontal_tab_strip_region_view->GetPreferredSize().height();
@@ -1352,7 +1360,7 @@
    }
  
    // Lay out the main area background.
-@@ -1024,6 +1162,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -1024,6 +1170,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
    bool side_panel_leading = false;
    bool leading_side_chrome_attached = false;
    bool trailing_side_chrome_attached = false;
@@ -1361,7 +1369,7 @@
    const double side_panel_reveal_amount =
        horizontal_layout.has_side_panel()
            ? views().side_panel->GetAnimationValue()
-@@ -1126,11 +1266,14 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -1126,11 +1274,14 @@ BrowserViewTabbedLayoutImpl::CalculatePr
      params.SetTop(top_container_layout.bounds.bottom());
    }
  
@@ -1377,7 +1385,7 @@
      }
    }
  
-@@ -1169,14 +1312,21 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -1169,14 +1320,21 @@ BrowserViewTabbedLayoutImpl::CalculatePr
    const auto& separator_info = layout_data_->separator_info;
    views().multi_contents_view->SetTopChromeAttachmentState(
        infobar_visible && should_use_rounded_frame,
@@ -1402,7 +1410,7 @@
      const bool include_leading_inset =
          separator_info.shadow_box ||
          !(horizontal_layout.has_side_panel() && side_panel_leading);
-@@ -1186,11 +1336,17 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -1186,11 +1344,17 @@ BrowserViewTabbedLayoutImpl::CalculatePr
      const int default_inset = MultiContentsView::kSplitViewContentInset;
      const int panel_side_inset =
          base::ClampRound((1.0 - side_panel_reveal_amount) * default_inset);
@@ -1423,7 +1431,7 @@
  
      views().multi_contents_view->SetSplitViewInsets(contents_insets);
    }
-@@ -1319,6 +1475,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
+@@ -1319,6 +1483,8 @@ BrowserViewTabbedLayoutImpl::CalculatePr
  
      views().vertical_tab_strip_region_view->SetHasLeadingExclusionForLayout(
          has_leading_exclusion);
@@ -1432,7 +1440,7 @@
    }
  
    if (IsParentedTo(views().side_panel_content_transition_scrim,
-@@ -1357,6 +1515,8 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
+@@ -1357,6 +1523,8 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
        IsDynamicTabStrip(layout_data_->tab_strip_type);
    const bool show_dynamic_tab_strip =
        ShowDynamicTabStrip(layout_data_->tab_strip_type);
@@ -1441,7 +1449,7 @@
  
    if (IsParentedTo(views().horizontal_tab_strip_region_view,
                     views().top_container)) {
-@@ -1365,12 +1525,19 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
+@@ -1365,12 +1533,19 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
        const int leading_margin = GetHorizontalTabStripLeadingMargin(params);
        tabstrip_bounds = GetBoundsWithExclusion(
            params, views().horizontal_tab_strip_region_view, leading_margin);
@@ -1464,7 +1472,7 @@
    }
  
    // Lay out toolbar. If toolbar is in the top-most row, it will go into the
-@@ -1391,21 +1558,26 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
+@@ -1391,21 +1566,26 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
                            params.visual_client_area.y(),
                            params.visual_client_area.width(),
                            views().toolbar->GetPreferredSize().height());
@@ -1495,7 +1503,7 @@
    }
  
    // Lay out the bookmarks bar if one is present.
-@@ -1414,24 +1586,33 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
+@@ -1414,24 +1594,33 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
      const gfx::Rect bookmarks_bounds(
          params.visual_client_area.x(), params.visual_client_area.y(),
          params.visual_client_area.width(),
@@ -1536,7 +1544,7 @@
    }
  
    return gfx::Rect(params.visual_client_area.x(), original_top,
-@@ -1439,13 +1620,60 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
+@@ -1439,13 +1628,60 @@ gfx::Rect BrowserViewTabbedLayoutImpl::C
                     params.visual_client_area.y() - original_top);
  }
  

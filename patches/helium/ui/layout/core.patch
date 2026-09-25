@@ -1,11 +1,11 @@
 --- a/chrome/browser/ui/tabs/features.cc
 +++ b/chrome/browser/ui/tabs/features.cc
-@@ -32,6 +32,7 @@ BASE_FEATURE(kTabSearchCjkWordBoundary,
+@@ -32,6 +32,6 @@ BASE_FEATURE(kTabSearchCjkWordBoundary,
  
  BASE_FEATURE(kVerticalTabsNewBadge, base::FEATURE_ENABLED_BY_DEFAULT);
  
-+// TODO: Figure out how this interacts with Zen mode.
- BASE_FEATURE(kVerticalTabsExpandOnHover, base::FEATURE_DISABLED_BY_DEFAULT);
+-BASE_FEATURE(kVerticalTabsExpandOnHover, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kVerticalTabsExpandOnHover, base::FEATURE_ENABLED_BY_DEFAULT);
  BASE_FEATURE_PARAM(bool,
                     kVerticalTabsExpandOnHoverDefaultEnabled,
 --- a/chrome/browser/sync/prefs/chrome_syncable_prefs_database.cc
@@ -59,14 +59,14 @@
  #include "chrome/browser/ui/tabs/features.h"
  #include "chrome/browser/ui/tabs/vertical_tab_strip_state.h"
  #include "chrome/browser/ui/tabs/vertical_tab_strip_state_controller.h"
-@@ -24,14 +25,13 @@ void RegisterProfilePrefs(user_prefs::Pr
+@@ -24,14 +25,16 @@ void RegisterProfilePrefs(user_prefs::Pr
    registry->RegisterBooleanPref(prefs::kOrganizerPanelPinnedToTabstrip, true);
    registry->RegisterBooleanPref(prefs::kEverythingMenuPinnedToTabstrip, true);
    registry->RegisterBooleanPref(prefs::kTabScrollButtonsPinnedToTabstrip, true);
 -  registry->RegisterBooleanPref(prefs::kVerticalTabsEnabled, false);
--  registry->RegisterBooleanPref(
--      prefs::kVerticalTabsExpandOnHoverEnabled,
--      tabs::kVerticalTabsExpandOnHoverDefaultEnabled.Get());
+   registry->RegisterBooleanPref(
+       prefs::kVerticalTabsExpandOnHoverEnabled,
+       tabs::kVerticalTabsExpandOnHoverDefaultEnabled.Get());
 -  registry->RegisterBooleanPref(prefs::kVerticalTabsEnabledFirstTime, false);
    registry->RegisterBooleanPref(prefs::kVerticalTabsCollapsedState, false);
    registry->RegisterIntegerPref(prefs::kVerticalTabsUncollapsedWidth,
@@ -107,7 +107,7 @@
  #include "chrome/browser/ui/tabs/features.h"
  #include "chrome/browser/ui/toasts/api/toast_id.h"
  #include "chrome/browser/ui/toasts/toast_controller.h"
-@@ -60,24 +61,14 @@ VerticalTabStripStateController::Vertica
+@@ -60,10 +61,11 @@ VerticalTabStripStateController::Vertica
    pref_change_registrar_.Init(pref_service_);
  
    is_vertical_tabs_enabled_ =
@@ -122,21 +122,7 @@
        base::BindRepeating(&VerticalTabStripStateController::OnModeChanged,
                            base::Unretained(this)));
  
--  if (IsVerticalTabsExpandOnHoverFeatureEnabled()) {
--    is_expand_on_hover_enabled_ =
--        pref_service_->GetBoolean(prefs::kVerticalTabsExpandOnHoverEnabled);
--
--    pref_change_registrar_.Add(
--        prefs::kVerticalTabsExpandOnHoverEnabled,
--        base::BindRepeating(
--            &VerticalTabStripStateController::OnExpandOnHoverEnabledChanged,
--            base::Unretained(this)));
--  }
--
-   if (restored_state_collapsed.has_value()) {
-     SetCollapsed(restored_state_collapsed.value());
-   }
-@@ -185,12 +176,24 @@ void VerticalTabStripStateController::Se
+@@ -185,12 +187,24 @@ void VerticalTabStripStateController::Se
    // If the user already has a pending mode switch, but tries to change tab
    // strip mode again, ensure the toast is displayed.
    if (enable_state_lock_count_ > 0 && enabled != is_vertical_tabs_enabled_ &&
@@ -163,18 +149,7 @@
  }
  
  bool VerticalTabStripStateController::IsCollapsed() const {
-@@ -245,9 +248,7 @@ bool VerticalTabStripStateController::Is
-   return is_expand_on_hover_enabled_;
- }
- 
--void VerticalTabStripStateController::SetExpandOnHoverEnabled(bool enabled) {
--  pref_service_->SetBoolean(prefs::kVerticalTabsExpandOnHoverEnabled, enabled);
--}
-+void VerticalTabStripStateController::SetExpandOnHoverEnabled(bool enabled) {}
- 
- void VerticalTabStripStateController::SetIsResizing(bool is_resizing) {
-   if (is_resizing_ == is_resizing) {
-@@ -305,22 +306,19 @@ void VerticalTabStripStateController::No
+@@ -305,22 +319,19 @@ void VerticalTabStripStateController::No
  }
  
  void VerticalTabStripStateController::NotifyModeChanged() {
@@ -201,17 +176,7 @@
      return;
    }
  
-@@ -331,8 +329,7 @@ void VerticalTabStripStateController::On
- }
- 
- void VerticalTabStripStateController::OnExpandOnHoverEnabledChanged() {
--  is_expand_on_hover_enabled_ =
--      pref_service_->GetBoolean(prefs::kVerticalTabsExpandOnHoverEnabled);
-+  is_expand_on_hover_enabled_ = false;
-   if (is_expand_on_hover_enabled_) {
-     base::RecordAction(
-         base::UserMetricsAction("VerticalTabs_ExpandOnHover_Enabled"));
-@@ -364,12 +361,12 @@ void VerticalTabStripStateController::On
+@@ -364,12 +375,12 @@ void VerticalTabStripStateController::On
    CHECK_GT(enable_state_lock_count_, 0);
    enable_state_lock_count_--;
  
@@ -230,7 +195,7 @@
    }
  }
  
-@@ -395,8 +392,10 @@ void VerticalTabStripStateController::Up
+@@ -395,8 +406,10 @@ void VerticalTabStripStateController::Up
  void VerticalTabStripStateController::UpdateCollapseActionItem() {
    const bool is_collapsed =
        GetCollapseState() != VerticalTabStripCollapseState::kExpanded;
@@ -242,7 +207,7 @@
                                      ? features::IsRoundedIconsEnabled()
                                            ? views::kMenuOpenIcon
                                            : views::kMenuOpenOldIcon
-@@ -441,17 +440,7 @@ void VerticalTabStripStateController::On
+@@ -441,17 +454,7 @@ void VerticalTabStripStateController::On
    }
  }
  
@@ -277,17 +242,17 @@
  // A boolean pref set to true if a Home button to open the Home pages should be
  // visible on the toolbar.
  inline constexpr char kShowHomeButton[] = "browser.show_home_button";
-@@ -1308,18 +1315,6 @@ inline constexpr char kEverythingMenuPin
+@@ -1308,9 +1315,6 @@ inline constexpr char kEverythingMenuPin
  inline constexpr char kTabScrollButtonsPinnedToTabstrip[] =
      "tab_scroll_buttons.pinned_to_tabstrip";
  
 -// Boolean determining whether vertical tabs are enabled.
 -inline constexpr char kVerticalTabsEnabled[] = "vertical_tabs.enabled";
 -
--// Boolean determining whether expand on hover for vertical tabs is enabled.
--inline constexpr char kVerticalTabsExpandOnHoverEnabled[] =
--    "vertical_tabs.expand_on_hover";
--
+ // Boolean determining whether expand on hover for vertical tabs is enabled.
+ inline constexpr char kVerticalTabsExpandOnHoverEnabled[] =
+     "vertical_tabs.expand_on_hover";
+@@ -1318,8 +1322,3 @@
 -// Records whether the user has enabled vertical tabs for the first time. Only
 -// used for metrics reporting purposes.
 -inline constexpr char kVerticalTabsEnabledFirstTime[] =
@@ -633,14 +598,14 @@
  #include "chrome/common/pref_names.h"
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-@@ -283,10 +283,6 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
+@@ -283,10 +283,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kSidePanelAlignmentOverrides] =
        settings_api::PrefType::kDictionary;
 -  (*s_allowlist)[::prefs::kVerticalTabsEnabled] =
 -      settings_api::PrefType::kBoolean;
--  (*s_allowlist)[::prefs::kVerticalTabsExpandOnHoverEnabled] =
--      settings_api::PrefType::kBoolean;
+   (*s_allowlist)[::prefs::kVerticalTabsExpandOnHoverEnabled] =
+       settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kTabSearchPinnedToTabstrip] =
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kTabScrollButtonsPinnedToTabstrip] =
