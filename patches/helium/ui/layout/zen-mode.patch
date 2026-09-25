@@ -1248,8 +1248,8 @@
 -      params.InsetHorizontal(inset_amount, /*leading=*/!vertical_right_aligned);
 +      vertical_tab_strip_width = vertical_tab_strip_bounds.width();
 +      if (!zen.floating_vertical_tab_strip) {
-+        const int inset_amount =
-+            vertical_tab_strip_width - GetVerticalTabStripContentOverlap();
++        const int inset_amount = horizontal_layout.vertical_tab_strip_width -
++                                 GetVerticalTabStripContentOverlap();
 +        params.InsetHorizontal(inset_amount,
 +                               /*leading=*/!vertical_right_aligned);
 +      }
