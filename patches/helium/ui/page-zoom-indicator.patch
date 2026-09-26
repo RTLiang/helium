@@ -362,7 +362,7 @@
    // dependent on label visibility and notifying others of chip state changes.
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-@@ -321,6 +321,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
+@@ -323,6 +323,8 @@
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kShiftRightClickContextMenu] =
        settings_api::PrefType::kBoolean;
@@ -395,7 +395,7 @@
        {"bookmarksBar", IDS_SETTINGS_BOOKMARKS_BAR},
 --- a/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
 +++ b/chrome/browser/resources/settings/appearance_page/appearance_page.html.ts
-@@ -299,6 +299,13 @@ export function getHtml(this: SettingsAp
+@@ -306,6 +306,13 @@
          `)}
        </select>
      </div>

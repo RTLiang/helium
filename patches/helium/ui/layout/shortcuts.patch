@@ -206,7 +206,7 @@
        {"showHomeButton", IDS_SETTINGS_SHOW_HOME_BUTTON},
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-@@ -709,6 +709,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
+@@ -711,6 +711,8 @@
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kCopyPageUrlShortcut] =
        settings_api::PrefType::kBoolean;

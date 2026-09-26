@@ -593,7 +593,7 @@
    bool should_show_glic_button_ = false;
 --- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
 +++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
-@@ -342,6 +342,10 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
+@@ -344,6 +344,10 @@
        settings_api::PrefType::kBoolean;
    (*s_allowlist)[::prefs::kShowMediaButton] =
        settings_api::PrefType::kBoolean;
